@@ -530,6 +530,12 @@ def build_demo(boot):
                              choices=list(OPERATIONAL_MODELS.keys()),
                              value=_initial_op_model,
                              interactive=True,
+                             # Session-deployed model names are pushed via
+                             # gr.update(); inside Tabs Gradio does not reliably
+                             # persist those choices server-side, so allow the
+                             # submitted value even when it isn't in the
+                             # construction-time choices.
+                             allow_custom_value=True,
                          )
                          op_refresh_models_btn = gr.Button(
                              "↻ Refresh from Drive",
@@ -899,6 +905,7 @@ def build_demo(boot):
                             choices=list(WQ_OPERATIONAL_MODELS.keys()),
                             value=_initial_wq_model,
                             interactive=True,
+                            allow_custom_value=True,
                         )
                         wq_refresh_models_btn = gr.Button(
                             "↻ Refresh from Drive",

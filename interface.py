@@ -63,6 +63,7 @@ import gradio as gr
 # -----------------------------
 # DATA + DRIVE MODEL FOLDERS
 # -----------------------------
+import tempfile
 from pathlib import Path
 
 DATASET_FOLDER = "/content/drive/MyDrive/Pond Classification/Data"
@@ -105,7 +106,11 @@ _WQ_OPERATIONAL_MODEL_CACHE = {}
 _DRIVE_URL_FILENAME_CACHE = {}
 
 # Prediction/analysis downloads are generated in runtime storage only.
-GENERATED_RESULTS_FOLDER = Path("/content/generated_results")
+# Gradio only serves output files located in allowed_paths, the current
+# working directory, or the system temp directory. Keeping downloads under
+# tempfile.gettempdir() makes them servable regardless of how launch()
+# is invoked in the notebook.
+GENERATED_RESULTS_FOLDER = Path(tempfile.gettempdir()) / "generated_results"
 GENERATED_RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
 
 # =============================
@@ -10562,4 +10567,8 @@ with gr.Blocks(theme=theme, css=CSS, js=DROPDOWN_JS, title="Multi-Temporal Surfa
         outputs=[wq_op_model_desc]
     )
 
-demo.queue(max_size=20).launch(share=True, debug = True)
+demo.queue(max_size=20).launch(
+    share=True,
+    debug=True,
+    allowed_paths=[str(GENERATED_RESULTS_FOLDER)],
+)

@@ -32,10 +32,11 @@ from pond_wq_app.config import (
     ALL_KNOWN_CLASSES,
     OPERATIONAL_MODELS,
     WQ_OPERATIONAL_MODELS,
+    GENERATED_RESULTS_FOLDER,
 )
 from pond_wq_app.registry import (
-    discover_pond_operational_models,
-    discover_wq_operational_models,
+    rescan_pond_model_registry,
+    rescan_wq_model_registry,
     get_operational_model_trained_classes,
 )
 from pond_wq_app.data.loader import autoload_and_preprocess_all
@@ -47,13 +48,11 @@ from pond_wq_app.ui.layout import build_demo
 
 def _compute_boot_context():
     """Compute all boot-time values needed by the layout and controllers."""
-    # Discover operational models from Drive
-    pond_registry, pond_encoders, pond_metadata, pond_logs = discover_pond_operational_models()
-    for line in pond_logs:
+    # Discover operational models from Drive into the shared registries
+    for line in rescan_pond_model_registry():
         print(f"[Pond model scan] {line}")
 
-    wq_registry, wq_logs = discover_wq_operational_models()
-    for line in wq_logs:
+    for line in rescan_wq_model_registry():
         print(f"[WQ model scan] {line}")
 
     # Preload & preprocess datasets
@@ -143,7 +142,11 @@ def main():
     boot = _compute_boot_context()
     set_boot_ctx(boot)
     demo = build_demo(boot)
-    demo.queue(max_size=20).launch(share=True, debug=True)
+    demo.queue(max_size=20).launch(
+        share=True,
+        debug=True,
+        allowed_paths=[str(GENERATED_RESULTS_FOLDER)],
+    )
 
 
 if __name__ == "__main__":

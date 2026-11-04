@@ -7,6 +7,7 @@ All Colab-specific paths and shared constants live here so that every
 other module imports from a single source of truth.
 """
 
+import tempfile
 from pathlib import Path
 
 # -----------------------------
@@ -35,7 +36,11 @@ TRAINED_MODELS_FOLDER = str(POND_SESSION_DEPLOYMENTS_FOLDER)
 WQ_TRAINED_MODELS_FOLDER = str(WQ_SESSION_DEPLOYMENTS_FOLDER)
 
 # Prediction/analysis downloads are generated in runtime storage only.
-GENERATED_RESULTS_FOLDER = Path("/content/generated_results")
+# Gradio only serves output files located in allowed_paths, the current
+# working directory, or the system temp directory. Keeping downloads under
+# tempfile.gettempdir() makes them servable regardless of how launch()
+# is invoked in the notebook.
+GENERATED_RESULTS_FOLDER = Path(tempfile.gettempdir()) / "generated_results"
 GENERATED_RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
 
 # =============================

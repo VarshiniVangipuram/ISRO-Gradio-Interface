@@ -268,26 +268,29 @@ def discover_wq_operational_models():
 # Registry rescans
 # -----------------------------
 def rescan_pond_model_registry():
-    global OPERATIONAL_MODELS
-    global OPERATIONAL_LABEL_ENCODERS
-    global OPERATIONAL_MODEL_METADATA
-    global _OPERATIONAL_MODEL_CACHE
+    """Rescan Drive and update the shared registries in place.
 
-    (
-        OPERATIONAL_MODELS,
-        OPERATIONAL_LABEL_ENCODERS,
-        OPERATIONAL_MODEL_METADATA,
-        logs,
-    ) = discover_pond_operational_models()
+    Mutating (rather than rebinding) keeps every module that imported
+    OPERATIONAL_MODELS/OPERATIONAL_LABEL_ENCODERS/OPERATIONAL_MODEL_METADATA
+    from config.py in sync.
+    """
+    registry, encoder_registry, metadata_registry, logs = (
+        discover_pond_operational_models()
+    )
+    OPERATIONAL_MODELS.clear()
+    OPERATIONAL_MODELS.update(registry)
+    OPERATIONAL_LABEL_ENCODERS.clear()
+    OPERATIONAL_LABEL_ENCODERS.update(encoder_registry)
+    OPERATIONAL_MODEL_METADATA.clear()
+    OPERATIONAL_MODEL_METADATA.update(metadata_registry)
     _OPERATIONAL_MODEL_CACHE.clear()
     return logs
 
 
 def rescan_wq_model_registry():
-    global WQ_OPERATIONAL_MODELS
-    global _WQ_OPERATIONAL_MODEL_CACHE
-
-    WQ_OPERATIONAL_MODELS, logs = discover_wq_operational_models()
+    registry, logs = discover_wq_operational_models()
+    WQ_OPERATIONAL_MODELS.clear()
+    WQ_OPERATIONAL_MODELS.update(registry)
     _WQ_OPERATIONAL_MODEL_CACHE.clear()
     return logs
 

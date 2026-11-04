@@ -1314,7 +1314,7 @@ def operational_predict(model_selector, uploaded_file, drive_path, st, target_cl
 
         download_df = st["op_original_df"].copy()
         for column, series in st["op_predictions"].items():
-            download_df[column] = np.nan
+            download_df[column] = pd.Series(dtype=object)
             valid_positions = [int(i) for i in series.index if 0 <= int(i) < len(download_df)]
             if valid_positions:
                 download_df.iloc[valid_positions, download_df.columns.get_loc(column)] = series.loc[valid_positions].to_numpy()

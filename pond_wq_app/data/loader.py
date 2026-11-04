@@ -241,7 +241,10 @@ def preprocess_dataset_to_unified(df, path, T=None, require_label=True):
     if len(series_cols) < 5:
         for c in df.columns:
             if c not in ["ID", labelcol]:
-                df[c] = pd.to_numeric(df[c], errors="ignore")
+                try:
+                    df[c] = pd.to_numeric(df[c])
+                except (ValueError, TypeError):
+                    pass
         series_cols = pick_temporalcols_like_xgb(df)
 
     if len(series_cols) < 5:
