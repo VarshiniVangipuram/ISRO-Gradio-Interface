@@ -78,7 +78,7 @@ from .data.loader import (
 )
 from .data.drive_utils import (
     _safe_source_filename,
-    _result_csv_path,
+    save_result_csv,
     download_drive_link,
 )
 from .data.validation import validate_uploaded_dataset, validate_operational_dataset, wq_validate_data
@@ -575,11 +575,11 @@ def wq_run_analysis(model_choice, n_clusters, k_range_max, pca_components,
 
         # Save CSV from master DataFrame — all model results accumulated, columns never overwritten
         if st.get("wq_master_df") is not None:
-            dl_path = _result_csv_path(
+            dl_path = save_result_csv(
+                st["wq_master_df"],
                 st.get("wq_active_source_name") or "water_quality_dataset.xlsx",
                 suffix="wq_analysis",
             )
-            st["wq_master_df"].to_csv(dl_path, index=False)
 
     except Exception as e:
         summary_html = error_html(f"Analysis error: {str(e)}<br><pre>{traceback.format_exc()}</pre>")
@@ -833,8 +833,6 @@ def wq_operational_predict(model_key, upload_file, drive_link, sheet_wq, sheet_w
 
             f1, f2, f3, f4 = figs.get('scatter'), None, None, None
 
-        dl_path = _result_csv_path(source_name, suffix="wq_predictions")
-
         # Merge results into op_master_df with model prefixes, similar to analysis logic
         if "Model1" in m_name:
             for _col in ["Cluster", "Typology", "TS_Class", "Resilience_Class"]:
@@ -868,7 +866,7 @@ def wq_operational_predict(model_key, upload_file, drive_link, sheet_wq, sheet_w
                     op_master_df[_col] = "N/A"
 
         st["wq_op_master_df"] = op_master_df
-        op_master_df.to_csv(dl_path, index=False)
+        dl_path = save_result_csv(op_master_df, source_name, suffix="wq_predictions")
         return summary, f1, f2, f3, f4, dl_path, st
 
     except Exception as e:
@@ -1322,8 +1320,7 @@ def operational_predict(model_selector, uploaded_file, drive_path, st, target_cl
         if has_real_label:
             download_df = download_df.iloc[active_positions].copy()
 
-        csv_path = _result_csv_path(source_name, suffix="predictions")
-        download_df.to_csv(csv_path, index=False)
+        csv_path = save_result_csv(download_df, source_name, suffix="predictions")
 
         # 6. Results and normalized evaluation metrics.
         results_html, _ = generate_operational_results(

@@ -14,9 +14,34 @@ from pathlib import Path
 # DATA + DRIVE MODEL FOLDERS
 # -----------------------------
 
-DATASET_FOLDER = "/content/drive/MyDrive/Pond Classification/Data"
+# Project root = the folder containing the pond_wq_app package. Datasets and
+# model folders are expected to live INSIDE this root so the whole project is
+# a single, movable Drive folder. The old top-level MyDrive locations are kept
+# as fallbacks so nothing breaks during the move.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DRIVE_ROOT = Path("/content/drive/MyDrive")
 
-BEST_MODELS_ROOT = Path("/content/drive/MyDrive/Best_Models")
+
+def _resolve_folder(*candidates):
+    """Return the first candidate directory that exists, else the first one."""
+    for candidate in candidates:
+        if Path(candidate).is_dir():
+            return Path(candidate)
+    return Path(candidates[0])
+
+
+DATASET_FOLDER = str(
+    _resolve_folder(
+        PROJECT_ROOT / "Data" / "Pond Classification" / "Data",
+        PROJECT_ROOT / "Data",
+        DRIVE_ROOT / "Pond Classification" / "Data",
+    )
+)
+
+BEST_MODELS_ROOT = _resolve_folder(
+    PROJECT_ROOT / "Best_Models",
+    DRIVE_ROOT / "Best_Models",
+)
 POND_OPERATIONAL_MODELS_FOLDER = (
     BEST_MODELS_ROOT / "Pond_Classification_Models" / "Operational_Active"
 )
@@ -43,11 +68,26 @@ WQ_TRAINED_MODELS_FOLDER = str(WQ_SESSION_DEPLOYMENTS_FOLDER)
 GENERATED_RESULTS_FOLDER = Path(tempfile.gettempdir()) / "generated_results"
 GENERATED_RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
 
+# Persistent results archive inside the project folder. Every generated CSV is
+# written here as well as to the temp folder, so downloads are both durable on
+# Drive and servable by Gradio. Best-effort: failures must not break the app.
+RESULTS_FOLDER = PROJECT_ROOT / "Results"
+try:
+    RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
+
 # =============================
 # WATER QUALITY CONFIGURATION
 # =============================
-WQ_DATASET_FOLDER = "/content/drive/MyDrive/Water_Quality_Exports"
-WQ_DATASET_PATH = "/content/drive/MyDrive/Water_Quality_Exports/HYD_WSA_WQ_Feb2026.xlsx"
+WQ_DATASET_FOLDER = str(
+    _resolve_folder(
+        PROJECT_ROOT / "Data" / "Water_Quality_Exports",
+        PROJECT_ROOT / "Water_Quality_Exports",
+        DRIVE_ROOT / "Water_Quality_Exports",
+    )
+)
+WQ_DATASET_PATH = str(Path(WQ_DATASET_FOLDER) / "HYD_WSA_WQ_Feb2026.xlsx")
 WQ_SHEET_WQ = 1
 WQ_SHEET_WSA = 0
 

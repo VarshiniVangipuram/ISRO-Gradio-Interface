@@ -13,7 +13,11 @@ from urllib.parse import unquote, urlparse, parse_qs
 
 import requests
 
-from ..config import GENERATED_RESULTS_FOLDER, _DRIVE_URL_FILENAME_CACHE
+from ..config import (
+    GENERATED_RESULTS_FOLDER,
+    RESULTS_FOLDER,
+    _DRIVE_URL_FILENAME_CACHE,
+)
 
 
 def _filename_from_content_disposition(header_value):
@@ -101,6 +105,30 @@ def _result_csv_path(source_filename, suffix="predictions"):
 
     GENERATED_RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
     return str(GENERATED_RESULTS_FOLDER / filename)
+
+
+def save_result_csv(df, source_filename, suffix="predictions"):
+    """
+    Persist a result CSV and return a path Gradio can serve.
+
+    The file is written twice:
+    1. RESULTS_FOLDER (inside the project directory) — durable archive on Drive.
+    2. GENERATED_RESULTS_FOLDER (system temp) — path returned to the UI, always
+       servable regardless of how launch() was invoked.
+    """
+    temp_path = Path(_result_csv_path(source_filename, suffix=suffix))
+    filename = temp_path.name
+
+    df.to_csv(temp_path, index=False)
+
+    try:
+        RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
+        df.to_csv(RESULTS_FOLDER / filename, index=False)
+    except OSError:
+        # Drive may be unavailable/read-only — the temp copy still works.
+        pass
+
+    return str(temp_path)
 
 
 def download_drive_link(url):

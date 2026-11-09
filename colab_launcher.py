@@ -25,10 +25,23 @@ except ImportError:
     print("Not running in Google Colab. Skipping Drive mount.")
 
 # ─── 3. Add project to sys.path ───────────────────────────────────────────
-# If the project lives on Google Drive, adjust the path below.
+# Resolve the project root from this file's own location so the launcher
+# works no matter which Drive folder copy it is run from. If you paste this
+# script into a notebook cell instead of running it via %run, set
+# _PROJECT_DIR_OVERRIDE to the project folder path.
 import os, sys
 
-_PROJECT_DIR = "/content/drive/MyDrive/Gradio Interface"
+_PROJECT_DIR_OVERRIDE = None  # e.g. "/content/drive/MyDrive/Complete_Pond_Classification_Final"
+
+if _PROJECT_DIR_OVERRIDE:
+    _PROJECT_DIR = _PROJECT_DIR_OVERRIDE
+else:
+    try:
+        _PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+    except NameError:
+        # __file__ is undefined when pasted into a notebook cell
+        _PROJECT_DIR = os.getcwd()
+
 if not os.path.isdir(_PROJECT_DIR):
     # Fallback: assume the notebook is opened from the project root
     _PROJECT_DIR = os.getcwd()
